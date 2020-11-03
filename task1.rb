@@ -99,11 +99,19 @@ class Train
   end
   
   # Продвинуться по маршруту вперед, если не в конце пути
+<<<<<<< Updated upstream
   def move_forward
     unless @route.nil?
       unless @station == @route.finish_station
         station_index = @route.to_a.index(station)
         station_index = 0 if station_index.nil? # Обработка удаления из маршрута станции, на которой есть поезд, следующий по данному маршруту
+=======
+  def move_forward_on_route
+    unless @route.nil?
+      station_index = @route.to_a.index(station)
+      station_index = 0 if station_index.nil? # Обработка удаления из маршрута станции, на которой есть поезд, следующий по данному маршруту
+      unless @station == @route.finish_station
+>>>>>>> Stashed changes
         @route.to_a[station_index].send_train(self)
         station_index += 1
         @station = @route.to_a[station_index]
@@ -112,6 +120,7 @@ class Train
     end
   end
 
+<<<<<<< Updated upstream
   def move_back
     unless @route.nil?
       unless @station == @route.start_station
@@ -119,12 +128,23 @@ class Train
         station_index = 0 if station_index.nil? # Обработка удаления из маршрута станции, на которой есть поезд, следующий по данному маршруту
         @route.to_a[station_index].send_train(self)
         station_index += 1
+=======
+  # Продвинуться по маршруту назад, если не в начале пути
+  def move_back_on_route
+    unless @route.nil?
+      station_index = @route.to_a.index(station)
+      station_index = 0 if station_index.nil? # Обработка удаления из маршрута станции, на которой есть поезд, следующий по данному маршруту
+      unless @station == @route.start_station
+        @route.to_a[station_index].send_train(self)
+        station_index -= 1
+>>>>>>> Stashed changes
         @station = @route.to_a[station_index]
         @route.to_a[station_index].take_train(self)
       end
     end
   end
 
+<<<<<<< Updated upstream
   def current_station
     @route[@position_in_route] unless @route.nil?
   end
@@ -138,6 +158,25 @@ class Train
   def prev_station
     unless @route.nil?
       @route[@position_in_route - 1] unless @position_in_route == 0
+=======
+  def current_station_on_route
+    @station unless @route.nil?
+  end
+
+  def next_station_on_route
+	unless @route.nil?
+	  station_index = @route.to_a.index(station)
+      station_index = 0 if station_index.nil?
+      @route[station_index + 1] unless station_index == @route.size - 1
+    end
+  end
+
+  def prev_station_on_route
+	unless @route.nil?
+	  station_index = @route.to_a.index(station)
+      station_index = 0 if station_index.nil?
+      @route[station_index - 1] unless station_index == 0
+>>>>>>> Stashed changes
     end
   end
 end
