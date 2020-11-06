@@ -7,7 +7,7 @@ class UserInterface
   end
 
   def run # Метод запуска интерфейса
-	loop
+	loop do 
 	  command = choose_command
 	  execute(command)
 	end
@@ -45,7 +45,7 @@ class UserInterface
 
   def route_info(route)
     "#{route.start_station.name} --> #{route.finish_station.name}"
-  def
+  end
 
   def get_information(message)
     puts "\t#{message}"
