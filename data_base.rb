@@ -2,10 +2,8 @@
 
 require_relative 'station'
 require_relative 'route'
-require_relative 'trains/train'
 require_relative 'trains/passenger_train'
 require_relative 'trains/cargo_train'
-require_relative 'vans/van'
 require_relative 'vans/passenger_van'
 require_relative 'vans/cargo_van'
 
