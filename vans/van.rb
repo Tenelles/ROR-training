@@ -1,5 +1,5 @@
+# frozen_string_literal: true
+
 class Van
-  def type # public, т. к. тип поезда нужен для проверки корректности присоединения
-    :none
-  end
+  def type; end
 end

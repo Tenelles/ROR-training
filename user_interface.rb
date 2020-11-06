@@ -7,8 +7,10 @@ class UserInterface
   end
 
   def run # Метод запуска интерфейса
-    command = choose_command
-    execute(command)
+	loop
+	  command = choose_command
+	  execute(command)
+	end
   end
 
   private
@@ -41,12 +43,16 @@ class UserInterface
     puts
   end
 
+  def route_info(route)
+    "#{route.start_station.name} --> #{route.finish_station.name}"
+  def
+
   def get_information(message)
     puts "\t#{message}"
     print "\t>>"
     station_name = gets.chomp
   end
-
+  
   def get_existing_station(message)
     name = get_information(message)
     station = db.station(name)
@@ -111,7 +117,7 @@ class UserInterface
     end
     route = Route.new(start_station, finish_station)
     db.routes << route
-    puts "\tМаршрут \"#{route.info}\" создан."
+    puts "\tМаршрут \"#{route_info(route)}\" создан."
   end
 
   def add_station
@@ -121,12 +127,11 @@ class UserInterface
     route = get_existing_route('Укажите номер маршрута: ')
     return if route.nil?
 
-    result = route.add_station(station)
-    if result == false
+    if route.add_station(station)
       puts "\tМаршрут уже содержит данную станцию! Операция отклонена.?"
       return
     end
-    puts "\tСтанция #{station.name} была добавлена в маршрут \"#{route.info}\""
+    puts "\tСтанция #{station.name} была добавлена в маршрут \"#{route_info(route)}\""
   end
 
   def remove_station
@@ -136,12 +141,11 @@ class UserInterface
     route = get_existing_route('Укажите номер маршрута: ')
     return if route.nil?
 
-    result = route.remove_station(station)
-    if result == false
+    if route.remove_station(station)
       puts "\tМаршрут не содержит данную станцию! Операция отклонена."
       return
     end
-    puts "\tСтанция #{station.name} была удалена из маршрута \"#{route.info}\""
+    puts "\tСтанция #{station.name} была удалена из маршрута \"#{route_info(route)}\""
   end
 
   def choose_route
@@ -152,7 +156,7 @@ class UserInterface
     return if train.nil?
 
     train.choose_route(route)
-    puts "\tПоезд № #{train.number} был переведен на маршрут \"#{route.info}\""
+    puts "\tПоезд № #{train.number} был переведен на маршрут \"#{route_info(route)}\""
   end
 
   def add_van
@@ -168,8 +172,7 @@ class UserInterface
     train = get_existing_train('Укажите номер поезда:')
     return if train.nil?
 
-    result = train.attach(van)
-    if result == true
+    if train.attach(van)
       puts "\t#{type}-вагон был добавлен к поезду № #{train.number}"
     else
       puts "\tТип вагона не соответствует типу поезда! Операция отклонена."

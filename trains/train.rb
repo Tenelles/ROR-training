@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Train
   attr_reader :number # public, используется для вывода
 
@@ -16,16 +18,11 @@ class Train
   end
 
   def attach(van) # public, используется в интерфейсе
-    if van.type == type && speed == 0
-      vans << van
-      true
-    else
-      false
-    end
+    vans << van if van.type == type && speed.zero?
   end
 
   def detach # public, используется в интерфейсе
-    vans.pop if speed == 0
+    vans.pop if speed.zero?
   end
 
   def vans_count # public, используется в интерфейсе
@@ -72,9 +69,7 @@ class Train
     next_n_station(-1)
   end
 
-  def type # public, используется для взаимодействия с вагонами
-    :none
-  end
+  def type; end
 
   private
 
