@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'data_base'
 
 class UserInterface
@@ -7,10 +9,10 @@ class UserInterface
   end
 
   def run # Метод запуска интерфейса
-	loop do 
-	  command = choose_command
-	  execute(command)
-	end
+    loop do
+      command = choose_command
+      execute(command)
+    end
   end
 
   private
@@ -52,7 +54,7 @@ class UserInterface
     print "\t>>"
     station_name = gets.chomp
   end
-  
+
   def get_existing_station(message)
     name = get_information(message)
     station = db.station(name)
@@ -92,9 +94,10 @@ class UserInterface
   def create_train
     number = get_information('Введите номер поезда:')
     type = get_information('Введите тип поезда (cargo или passenger):')
-    if type == 'cargo'
+    case type
+    when 'cargo'
       train = CargoTrain.new(number)
-    elsif type == 'passenger'
+    when 'passenger'
       train = PassengerTrain.new(number)
     else
       puts "\tНеверный тип поезда! Поезд не был создан."
@@ -161,9 +164,10 @@ class UserInterface
 
   def add_van
     type = get_information('Введите тип вагона (cargo или passenger):')
-    if type == 'cargo'
+    case type
+    when 'cargo'
       van = CargoVan.new
-    elsif type == 'passenger'
+    when 'passenger'
       van = PassengerVan.new
     else
       puts "\tНеверный тип вагона! Операция отклонена."
@@ -183,7 +187,7 @@ class UserInterface
     train = get_existing_train('Укажите номер поезда:')
     return if train.nil?
 
-    if train.vans_count > 0
+    if train.vans_count.positive?
       train.detach
       puts "\tОдин вагон был отцеплен от поезда № #{train.number}"
     else
@@ -200,9 +204,10 @@ class UserInterface
       return
     end
     direction = get_information('Выберите направление движения (forward или back):')
-    if direction == 'forward'
+    case direction
+    when 'forward'
       train.move_forward
-    elsif direction == 'back'
+    when 'back'
       train.move_back
     else
       puts "\tНеверное направление! Операция отклонена."

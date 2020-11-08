@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative '../company'
 require_relative '../instance_counter'
 
@@ -7,7 +8,7 @@ class Train
   include InstanceCounter
 
   def self.find(number)
-    ObjectSpace.each_object(Train).to_a.find { |train| train.number == number}
+    ObjectSpace.each_object(Train).to_a.find { |train| train.number == number }
   end
 
   attr_reader :number # public, используется для вывода
