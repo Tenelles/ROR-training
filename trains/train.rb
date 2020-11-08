@@ -8,7 +8,7 @@ class Train
   include InstanceCounter
 
   def self.find(number)
-    ObjectSpace.each_object(Train).to_a.find { |train| train.number == number }
+    objects.find { |train| train.number == number }
   end
 
   attr_reader :number # public, используется для вывода
@@ -18,6 +18,7 @@ class Train
     @speed = 0
     @vans = []
     register_instance
+    self.class.objects << self
   end
 
   def increase_speed(value)
@@ -82,7 +83,13 @@ class Train
 
   def type; end
 
-  private
+  protected
+
+  @@objects = []
+  def self.objects
+    [] if @@objects.nil?
+    @@objects
+  end
 
   attr_writer :number # Не стоит позволять менять номер поезда извне
   # Переменные, о которых извне лучше не знать

@@ -13,7 +13,6 @@ module InstanceCounter
 
     def add_instance
       self.instances_count ||= 0
-      puts 's'
       self.instances_count += 1
     end
 

@@ -4,12 +4,13 @@ class Station
   attr_reader :trains_list, :name
 
   def self.all
-    ObjectSpace.each_object(Station).to_a
+    objects
   end
 
   def initialize(name)
     @name = name
     @trains_list = []
+    self.class.objects << self
   end
 
   def take_train(train) # public, т.к. используется в реализации класса train
@@ -24,7 +25,12 @@ class Station
     trains_list.select { |train| train.type == type }
   end
 
-  private
+  protected
+
+  @@objects = []
+  def self.objects
+    @@objects
+  end
 
   attr_writer :trains_list, :name
 end
