@@ -4,7 +4,7 @@ require_relative 'van'
 
 class CargoVan < Van
   include InstanceCounter
-  def type # public, как у родителя
+  def type
     :cargo
   end
 end

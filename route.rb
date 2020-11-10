@@ -1,33 +1,47 @@
 # frozen_string_literal: true
 
+#   Список ошибок:
+#     add_station: "Добавление уже существующей станции" - попытка добавить станцию, которая уже есть в маршруте
+#     remove_station: "Удаление несуществующей станции" - попытка удалить станцию, которая нет в маршруте
+#     validate!: "Одинаковые начальная и конечная станции" - машрут не может состоять из одной станции
+
 class Route
-  # Станции в составе маршрута вполне используются в других методах
-  attr_reader :start_station
-  attr_reader :finish_station, :intermediate_stations
+  attr_reader :start_station, :finish_station
 
   def initialize(start_station, finish_station)
     @start_station = start_station
     @finish_station = finish_station
     @intermediate_stations = []
+    validate!
   end
 
-  def add_station(station) # public, т.к. используется в интерфейсе
-    return if station == start_station || station = finish_station
+  def valid?
+    validate!
+    true
+  rescue RuntimeError
+    false
+  end
+
+  def add_station(station)
+    raise 'Добавление уже существующей станции' if stations.include?(stations)
 
     intermediate_stations << station
   end
 
-  def remove_station(station) # public, т.к. используется в интерфейсе
-    intermediate_stations.delete(station)
+  def remove_station(station)
+    raise 'Удаление несуществующей станции' if intermediate_stations.delete(station)
   end
 
-  def stations # public, т.к. используется в интерфейсе
-    [start_station, *intermediate_stations, finish_station]
+  def stations
+    [start_station, *@intermediate_stations, finish_station]
   end
 
-  private
+  protected
 
-  # Возможность менять маршрут напрямую следует ограничить
-  attr_writer :start_station
-  attr_writer :finish_station, :intermediate_stations
+  attr_writer :start_station, :finish_station
+  attr_accessor :intermediate_stations
+
+  def validate!
+    raise 'Одинаковые начальная и конечная станции' if start_station == finish_station
+  end
 end
