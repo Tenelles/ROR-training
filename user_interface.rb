@@ -8,7 +8,7 @@ class UserInterface
     help
   end
 
-  def run # Метод запуска интерфейса
+  def run
     loop do
       command = choose_command
       execute(command)
@@ -17,10 +17,8 @@ class UserInterface
 
   private
 
-  # Не стоит давать доступ к базе данных извне
   attr_accessor :db
 
-  # Методы, осуществляющие работоспособность интерфейса. Видеть их пользователю не стоит
   def choose_command
     puts 'Введите команду. Для полного списка комманд введите "?"'
     print '>>'
@@ -29,19 +27,19 @@ class UserInterface
 
   def help
     puts 'Список команд: '
-    puts "?\t\t\t\t\tПолный список команд"
+    puts "?\t\t\tПолный список команд"
     puts "create station\t\tСоздать станцию"
     puts "create train\t\tСоздать поезд"
     puts "create route\t\tСоздать маршрут"
-    puts "add station\t\t\tДобавить станцию к маршруту"
+    puts "add station\t\tДобавить станцию к маршруту"
     puts "remove station\t\tУдалить станцию из маршрута"
     puts "choose route\t\tВыбрать маршрут для поезда"
-    puts "add van\t\t\t\tПрицепить вагон"
-    puts "remove van\t\t\tОтцепить вагон"
-    puts "move train\t\t\tПереместить поезд"
+    puts "add van\t\t\tПрицепить вагон"
+    puts "remove van\t\tОтцепить вагон"
+    puts "move train\t\tПереместить поезд"
     puts "stations list\t\tСписок станций"
-    puts "routes list\t\t\tСписок маршрутов"
-    puts "trains list\t\t\tСписок поездов на станции"
+    puts "routes list\t\t\писок маршрутов"
+    puts "trains list\t\tСписок поездов на станции"
     puts
   end
 
@@ -52,177 +50,176 @@ class UserInterface
   def get_information(message)
     puts "\t#{message}"
     print "\t>>"
-    station_name = gets.chomp
+    message = gets.chomp
+  end
+
+  def get_limited_information(message, correct_answers)
+    answer = get_information(message)
+    raise 'Неверный ввод' unless correct_answers.include?(answer)
+
+    answer
+  rescue RuntimeError
+    puts "\tОшибка ввода! Повторите ввод."
+    retry
   end
 
   def get_existing_station(message)
     name = get_information(message)
     station = db.station(name)
-    if station.nil?
-      puts "\tНеверная станция! Операция отклонена."
-      return
-    end
+    raise 'Станция не найдена' if station.nil?
+
     station
+  rescue RuntimeError
+    puts "\tСтанция не найдена! Повторите ввод."
+    retry
   end
 
   def get_existing_train(message)
     number = get_information(message)
     train = db.train(number)
-    if train.nil?
-      puts "\tНеверный поезд! Операция отклонена."
-      return
-    end
+    raise 'Поезд не найден' if train.nil?
+
     train
+  rescue RuntimeError
+    puts "\tПоезд не найден! Повторите ввод."
+    retry
   end
 
   def get_existing_route(message)
     route_index = get_information(message).to_i - 1
-    unless (0...db.routes.size).include?(route_index)
-      puts "\tНеверный маршрут! Операция отклонена."
-      return
-    end
+    raise 'Маршрут не найден' unless (0...db.routes.size).include?(route_index)
+
     db.routes[route_index]
+  rescue RuntimeError
+    puts "\tМаршрут не найден! Повторите ввод."
+    retry
   end
 
   def create_station
-    name = get_information('Введите название станции:')
+    name = get_information('Введите название станции (не менее 6 символов):')
     station = Station.new(name)
     db.stations << station
     puts "\tСтанция \"#{name}\" создана."
+  rescue RuntimeError
+    puts "\tНазвание станции слишком короткое! Повторите ввод."
+    retry
   end
 
   def create_train
-    number = get_information('Введите номер поезда:')
-    type = get_information('Введите тип поезда (cargo или passenger):')
+    type = get_limited_information('Введите тип поезда (cargo или passenger):', %w[cargo passenger])
+    number = get_information('Введите номер поезда в формате ***-*** или ******, где * - латинская буква или цифра:')
     case type
     when 'cargo'
       train = CargoTrain.new(number)
     when 'passenger'
       train = PassengerTrain.new(number)
-    else
-      puts "\tНеверный тип поезда! Поезд не был создан."
-      return
     end
     db.trains << train
-    puts "\tПоезд № #{number} создан."
+    puts "\tПоезд ##{number} создан."
+  rescue RuntimeError
+    puts "\tНеверный формант номера поезда! Повторите ввод."
+    retry
   end
 
   def create_route
     start_station = get_existing_station('Укажите первую станцию маршрута:')
-    return if start_station.nil?
-
     finish_station = get_existing_station('Укажите последнюю станцию маршрута:')
-    return if finish_station.nil?
 
-    if start_station == finish_station
-      puts "\tМаршрут не может включать две одинаковые станции! Маршрут не был создан."
-      return
-    end
     route = Route.new(start_station, finish_station)
     db.routes << route
     puts "\tМаршрут \"#{route_info(route)}\" создан."
+  rescue RuntimeError
+    puts "\tОдинаковые начальная и конечная станции! Повторите ввод."
+    retry
   end
 
   def add_station
     station = get_existing_station('Укажите станцию:')
-    return if station.nil?
-
     route = get_existing_route('Укажите номер маршрута: ')
-    return if route.nil?
-
-    if route.add_station(station)
-      puts "\tМаршрут уже содержит данную станцию! Операция отклонена.?"
-      return
-    end
+    route.add_station(station)
     puts "\tСтанция #{station.name} была добавлена в маршрут \"#{route_info(route)}\""
+  rescue RuntimeError
+    puts "\tНельзя добавить станцию, которая уже есть в маршруте! Повторите ввод."
+    retry
   end
 
   def remove_station
     station = get_existing_station('Укажите станцию:')
-    return if station.nil?
-
     route = get_existing_route('Укажите номер маршрута: ')
-    return if route.nil?
-
-    if route.remove_station(station)
-      puts "\tМаршрут не содержит данную станцию! Операция отклонена."
-      return
-    end
     puts "\tСтанция #{station.name} была удалена из маршрута \"#{route_info(route)}\""
+  rescue RuntimeError
+    puts "\tМаршрут не содержит данную станцию! Повторите ввод."
+    retry
   end
 
   def choose_route
     route = get_existing_route('Укажите номер маршрута:')
-    return if route.nil?
-
     train = get_existing_train('Укажите номер поезда:')
-    return if train.nil?
-
     train.choose_route(route)
-    puts "\tПоезд № #{train.number} был переведен на маршрут \"#{route_info(route)}\""
+    puts "\tПоезд ##{train.number} был переведен на маршрут \"#{route_info(route)}\""
   end
 
   def add_van
-    type = get_information('Введите тип вагона (cargo или passenger):')
+    type = get_limited_information('Введите тип вагона (cargo или passenger):', %w[cargo passenger])
     case type
     when 'cargo'
       van = CargoVan.new
     when 'passenger'
       van = PassengerVan.new
-    else
-      puts "\tНеверный тип вагона! Операция отклонена."
-      return
     end
     train = get_existing_train('Укажите номер поезда:')
-    return if train.nil?
-
-    if train.attach(van)
-      puts "\t#{type}-вагон был добавлен к поезду № #{train.number}"
-    else
-      puts "\tТип вагона не соответствует типу поезда! Операция отклонена."
+    train.attach(van)
+    puts "\t#{type}-вагон был добавлен к поезду № #{train.number}"
+  rescue RuntimeError => e
+    case e.to_s
+    when 'Несоответствие типов вагона и поезда'
+      puts "\tНесоответствие типов вагона и поезда! Повторите ввод."
+      retry
+    when 'Управление вагоном движущегося поезда'
+      puts "\tПопытка управления вагоном движущегося поезда! Операция не выполнена."
     end
   end
 
   def remove_van
     train = get_existing_train('Укажите номер поезда:')
-    return if train.nil?
-
-    if train.vans_count.positive?
-      train.detach
-      puts "\tОдин вагон был отцеплен от поезда № #{train.number}"
-    else
-      puts "\tПоезд № #{train.number} не имеет вагонов! Операция отклонена."
+    train.detach
+    puts "\tОдин вагон был отцеплен от поезда № #{train.number}"
+  rescue RuntimeError => e
+    case e.to_s
+    when 'Удаление несуществующего вагона'
+      puts "\tПоезд не имеет вагонов!Операция не выполнена."
+    when 'Управление вагоном движущегося поезда'
+      puts "\tПопытка управления вагоном движущегося поезда! Операция не выполнена."
     end
   end
 
   def move_train
     train = get_existing_train('Укажите номер поезда:')
-    return if train.nil?
-
-    unless train.on_route?
-      puts "\tПоезд № #{train.number} не имеет маршрута! Операция отклонена."
-      return
-    end
-    direction = get_information('Выберите направление движения (forward или back):')
+    direction = get_limited_information('Выберите направление движения (forward или back):', %w[forward back])
     case direction
     when 'forward'
       train.move_forward
     when 'back'
       train.move_back
-    else
-      puts "\tНеверное направление! Операция отклонена."
     end
-    puts "\tПоезд № #{train.number} продвинулся по маршруту."
+    puts "\tПоезд ##{train.number} продвинулся по маршруту."
+  rescue RuntimeError => e
+    case e.to_s
+    when 'Отсутствует маршрут'
+      puts "\tДанный поезд не прикреплен к маршруту. Операция не выполнена."
+    when 'Движение невозможно'
+      puts "\tДвижение в данном направлении невозможно. Повторите ввод."
+      retry
+    end
   end
 
   def stations_list
     puts 'Список станций:'
-    db.print_stations
+    print_stations(db.stations)
   end
 
   def trains_list
     station = get_existing_station('Укажите станцию:')
-    return if station.nil?
 
     puts "Список поездов на станции #{station.name}:"
     station.trains_list.each { |train| puts "№ #{train.number}: #{train.type}" }
@@ -230,7 +227,23 @@ class UserInterface
 
   def routes_list
     puts 'Список маршрутов:'
-    db.print_routes
+    print_routes(db.routes)
+  end
+
+  def print_stations(stations)
+    i = 1
+    stations.each do |station|
+      puts "#{i}: #{station.name}"
+      i += 1
+    end
+  end
+
+  def print_routes(routes)
+    i = 1
+    routes.each do |route|
+      puts "#{i}: #{route_info(route)}"
+      i += 1
+    end
   end
 
   def execute(command)

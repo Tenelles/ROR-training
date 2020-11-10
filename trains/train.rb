@@ -3,6 +3,14 @@
 require_relative '../company'
 require_relative '../instance_counter'
 
+#   Список ошибок:
+#     attach: "Несоответствие типов вагона и поезда" - попытка присоединить к поезду вагон иного типа
+#     attach, detach: "Управление вагоном движущегося поезда" - попытка присоединить/отсоединить вагон от движущегося поезда
+#     detach: "Удаление несуществующего вагона" - попытка отцепить вагон, когда в поезде нет вагонов
+#     move_forward, move_back, next_n_stations: "Отсутствует маршрут" - попытка взаимодействовать с отсутствующим маршрутом
+#     move_forward, move_back: "Движение невозможно" - попытка движения по маршруту за пределы этого маршрута
+#     validate_number!: "Неверный формат номера" - формат номера кода не соответствует условию
+
 class Train
   include Company
   include InstanceCounter
@@ -11,7 +19,7 @@ class Train
     objects.find { |train| train.number == number }
   end
 
-  attr_reader :number # public, используется для вывода
+  attr_reader :number
 
   def initialize(number)
     @number = number
@@ -19,6 +27,14 @@ class Train
     @vans = []
     register_instance
     self.class.objects << self
+    validate!
+  end
+
+  def valid?
+    validate!
+    true
+  rescue RuntimeError
+    false
   end
 
   def increase_speed(value)
@@ -29,40 +45,46 @@ class Train
     self.speed = 0
   end
 
-  def attach(van) # public, используется в интерфейсе
-    vans << van if van.type == type && speed.zero?
+  def attach(van)
+    raise 'Несоответствие типов вагона и поезда' unless van.type == type
+    raise 'Управление вагоном движущегося поезда' unless speed.zero?
+
+    vans << van
   end
 
-  def detach # public, используется в интерфейсе
-    vans.pop if speed.zero?
+  def detach
+    raise 'Управление вагоном движущегося поезда' unless speed.zero?
+    raise 'Удаление несуществующего вагона' unless vans_count.positive?
+
+    vans.pop
   end
 
-  def vans_count # public, используется в интерфейсе
+  def vans_count
     vans.size
   end
 
-  def choose_route(chosen_route) # public, используется в интерфейсе
+  def choose_route(chosen_route)
     self.route = chosen_route
     self.station = route.stations[0]
     station.take_train(self)
   end
 
-  def on_route? # public, используется в интерфейсе
+  def on_route?
     !route.nil?
   end
 
-  def move_forward # public, используется в интерфейсе
-    return unless on_route?
-    return if next_station.nil?
+  def move_forward
+    raise 'Отсутствует маршрут' unless on_route?
+    raise 'Движение невозможно' if next_station.nil?
 
     station.send_train(self)
     self.station = next_station
     station.take_train(self)
   end
 
-  def move_back # public, используется в интерфейсе
-    return unless on_route?
-    return if prev_station.nil?
+  def move_back
+    raise 'Отсутствует маршрут' unless on_route?
+    raise 'Движение невозможно' if prev_station.nil?
 
     station.send_train(self)
     self.station = prev_station
@@ -91,13 +113,23 @@ class Train
     @@objects
   end
 
-  attr_writer :number # Не стоит позволять менять номер поезда извне
-  # Переменные, о которых извне лучше не знать
-  attr_accessor :speed
-  attr_accessor :route, :station, :vans
+  def validate!
+    validate_number!
+  end
 
-  def next_n_station(n)  # private, т.к. вспомогательная функция, есть 2 ее public-модификации
-    return unless on_route?
+  def validate_number!
+    raise 'Неверный формат номера' unless number.downcase =~ correct_number_mask
+  end
+
+  def correct_number_mask
+    /[[0-9][a-z]]{3}-?[[0-9][a-z]]{3}/
+  end
+
+  attr_writer :number
+  attr_accessor :speed, :route, :station, :vans
+
+  def next_n_station(n)
+    raise 'Отсутствует маршрут' unless on_route?
 
     station_index = route.stations.index(station)
     if station_index.nil?

@@ -3,7 +3,7 @@
 require_relative 'train'
 
 class CargoTrain < Train
-  def type # public, как у родителя
+  def type
     :cargo
   end
 end

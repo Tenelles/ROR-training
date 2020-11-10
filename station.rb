@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+#   Список ошибок:
+#     validate!: "Название станции слишком короткое"
+
 class Station
   attr_reader :trains_list, :name
 
@@ -11,13 +14,21 @@ class Station
     @name = name
     @trains_list = []
     self.class.objects << self
+    validate!
   end
 
-  def take_train(train) # public, т.к. используется в реализации класса train
+  def valid?
+    validate!
+    true
+  rescue RuntimeError => e
+    false
+  end
+
+  def take_train(train)
     trains_list << train
   end
 
-  def send_train(train) # public, т.к. используется в реализации класса train
+  def send_train(train)
     trains_list.delete(train)
   end
 
@@ -30,6 +41,14 @@ class Station
   @@objects = []
   def self.objects
     @@objects
+  end
+
+  def validate!
+    raise 'Название станции слишком короткое' if name.length < min_name_length
+  end
+
+  def min_name_length
+    6
   end
 
   attr_writer :trains_list, :name
