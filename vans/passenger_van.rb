@@ -44,6 +44,7 @@ class PassengerVan < Van
 
   def validate!
   	raise "Отрицательное число мест" if places_count < 0;
+  end
 
   attr_writer :places_count
   attr_writer :free_places_count

@@ -24,6 +24,10 @@ class Station
     false
   end
 
+  def for_train(&block)
+    trains_list.each {|train| block.call(train)}
+  end
+
   def take_train(train)
     trains_list << train
   end

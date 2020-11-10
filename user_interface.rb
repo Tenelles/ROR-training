@@ -36,10 +36,13 @@ class UserInterface
     puts "choose route\t\tВыбрать маршрут для поезда"
     puts "add van\t\t\tПрицепить вагон"
     puts "remove van\t\tОтцепить вагон"
+    puts "take place\t\tЗанять место в вагоне"
+    puts "fill volume\t\tЗаполнить объем в вагоне"
     puts "move train\t\tПереместить поезд"
     puts "stations list\t\tСписок станций"
-    puts "routes list\t\t\писок маршрутов"
-    puts "trains list\t\tСписок поездов на станции"
+    puts "routes list\t\tCписок маршрутов"
+    puts "station info\t\tСписок поездов на станции"
+    puts "train info\t\tСписок вагонов в поезде"
     puts
   end
 
@@ -82,6 +85,16 @@ class UserInterface
     train
   rescue RuntimeError
     puts "\tПоезд не найден! Повторите ввод."
+    retry
+  end  
+
+  def get_existing_van(train, message)
+    van_number = get_information(message).to_i - 1
+    raise 'Вагон не найден' unless (0...train.vans.size).include?(van_number)
+
+    train.vans[van_number]
+  rescue RuntimeError
+    puts "\tВагон не найден! Повторите ввод."
     retry
   end
 
@@ -163,9 +176,11 @@ class UserInterface
     type = get_limited_information('Введите тип вагона (cargo или passenger):', %w[cargo passenger])
     case type
     when 'cargo'
-      van = CargoVan.new
+      max_volume = get_information('Введите максимальный объем:').to_f
+      van = CargoVan.new(max_volume)
     when 'passenger'
-      van = PassengerVan.new
+      places_count = get_information('Введите число мест:').to_i
+      van = PassengerVan.new(places_count)
     end
     train = get_existing_train('Укажите номер поезда:')
     train.attach(van)
@@ -174,6 +189,12 @@ class UserInterface
     case e.to_s
     when 'Несоответствие типов вагона и поезда'
       puts "\tНесоответствие типов вагона и поезда! Повторите ввод."
+      retry
+    when 'Отрицательный объем'
+      puts "\tМаксимальный объем не может быть отрицательным! Повторите ввод."
+      retry
+    when 'Отрицатеьное число мест'
+      puts "\tЧисло мест не может быть отрицательным! Повторите ввод."
       retry
     when 'Управление вагоном движущегося поезда'
       puts "\tПопытка управления вагоном движущегося поезда! Операция не выполнена."
@@ -191,6 +212,31 @@ class UserInterface
     when 'Управление вагоном движущегося поезда'
       puts "\tПопытка управления вагоном движущегося поезда! Операция не выполнена."
     end
+  end
+
+  def take_place
+    train = get_existing_train('Укажите номер поезда:')
+    van = get_existing_van(train, 'Укажите номер вагона:')
+    van.take_place
+    puts "\tМесто было занято успешно."
+
+  rescue NoMethodError
+    puts "\tДанная операция недоступна для вагона данного типа! Операция не выполнена."
+  rescue RuntimeError
+    puts "\tНедостаточно свободных мест! Операция не выполнена."
+  end
+
+  def fill_volume
+    train = get_existing_train('Укажите номер поезда:')
+    van = get_existing_van(train, 'Укажите номер вагона:')
+    volume = get_information('Укажите добавочный объем:').to_i
+    van.fill_volume(volume)
+    puts "\tОбъем был добвлен успешно."
+
+  rescue NoMethodError
+    puts "\tДанная операция недоступна для вагона данного типа! Операция не выполнена."
+  rescue RuntimeError
+    puts "\tНевозможно добавить указанный объем! Операция не выполнена."
   end
 
   def move_train
@@ -218,13 +264,6 @@ class UserInterface
     print_stations(db.stations)
   end
 
-  def trains_list
-    station = get_existing_station('Укажите станцию:')
-
-    puts "Список поездов на станции #{station.name}:"
-    station.trains_list.each { |train| puts "№ #{train.number}: #{train.type}" }
-  end
-
   def routes_list
     puts 'Список маршрутов:'
     print_routes(db.routes)
@@ -236,6 +275,29 @@ class UserInterface
 
   def print_routes(routes)
     routes.each.with_index(1) { |route, index| puts "#{index}: #{route_info(route)}" }
+  end
+
+  def station_info
+    station = get_existing_station('Укажите станцию:')
+
+    puts "Список поездов на станции #{station.name}:"
+    station.for_train { |train| puts "#{train.number}: #{train.type}, вагонов: #{train.vans.size}" }
+  end
+
+  def train_info
+    train = get_existing_train('Укажите номер поезда:')
+
+    puts "Список вагонов поезда ##{train.number}:"
+    i = 0
+    train.for_van do |van| 
+      i += 1
+      case van.type
+      when :cargo
+        puts "#{i}: #{van.type}, свободно: #{van.free_volume} л, занято: #{van.filled_volume} л."
+      when :passenger
+        puts "#{i}: #{van.type}, свободно: #{van.free_places_count} мест, занято: #{van.taken_places_count} мест."
+      end
+    end
   end
 
   def execute(command)
@@ -258,14 +320,20 @@ class UserInterface
       add_van
     when 'remove van'
       remove_van
+    when 'take place'
+      take_place
+    when 'fill volume'
+      fill_volume
     when 'move train'
       move_train
     when 'stations list'
       stations_list
     when 'routes list'
       routes_list
-    when 'trains list'
-      trains_list
+    when 'station info'
+      station_info
+    when 'train info'
+      train_info
     else
       puts 'Неверная команда!'
     end
