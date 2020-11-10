@@ -15,7 +15,7 @@ class Route
     validate!
   end
 
-  def validate?
+  def valid?
     validate!
     true
   rescue RuntimeError

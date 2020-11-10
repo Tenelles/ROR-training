@@ -22,7 +22,7 @@ class UserInterface
   def choose_command
     puts 'Введите команду. Для полного списка комманд введите "?"'
     print '>>'
-    command = gets.chomp
+    gets.chomp
   end
 
   def help
@@ -50,7 +50,7 @@ class UserInterface
   def get_information(message)
     puts "\t#{message}"
     print "\t>>"
-    message = gets.chomp
+    gets.chomp
   end
 
   def get_limited_information(message, correct_answers)
@@ -231,19 +231,11 @@ class UserInterface
   end
 
   def print_stations(stations)
-    i = 1
-    stations.each do |station|
-      puts "#{i}: #{station.name}"
-      i += 1
-    end
+    stations.each.with_index(1) { |station, index| puts "#{index}: #{station.name}" }
   end
 
   def print_routes(routes)
-    i = 1
-    routes.each do |route|
-      puts "#{i}: #{route_info(route)}"
-      i += 1
-    end
+    routes.each.with_index(1) { |route, index| puts "#{index}: #{route_info(route)}" }
   end
 
   def execute(command)

@@ -108,9 +108,11 @@ class Train
   protected
 
   @@objects = []
-  def self.objects
-    [] if @@objects.nil?
-    @@objects
+  class << self
+    def self.objects
+      [] if @@objects.nil?
+      @@objects
+    end
   end
 
   def validate!

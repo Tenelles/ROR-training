@@ -20,7 +20,7 @@ class Station
   def valid?
     validate!
     true
-  rescue RuntimeError => e
+  rescue RuntimeError
     false
   end
 
@@ -38,17 +38,17 @@ class Station
 
   protected
 
+  MIN_NAME_LENGTH = 6
+
   @@objects = []
-  def self.objects
-    @@objects
+  class << self
+    def objects
+      @@objects
+    end
   end
 
   def validate!
-    raise 'Название станции слишком короткое' if name.length < min_name_length
-  end
-
-  def min_name_length
-    6
+    raise 'Название станции слишком короткое' if name.length < MIN_NAME_LENGTH
   end
 
   attr_writer :trains_list, :name
