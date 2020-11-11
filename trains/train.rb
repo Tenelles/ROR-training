@@ -20,6 +20,7 @@ class Train
   end
 
   attr_reader :number
+  attr_reader :vans
 
   def initialize(number)
     @number = number
@@ -35,6 +36,10 @@ class Train
     true
   rescue RuntimeError
     false
+  end
+
+  def for_van(&block)
+    vans.each { |van| block.call(van)}
   end
 
   def increase_speed(value)
@@ -109,7 +114,7 @@ class Train
 
   @@objects = []
   class << self
-    def self.objects
+    def objects
       [] if @@objects.nil?
       @@objects
     end
@@ -127,8 +132,8 @@ class Train
     /[[0-9][a-z]]{3}-?[[0-9][a-z]]{3}/
   end
 
-  attr_writer :number
-  attr_accessor :speed, :route, :station, :vans
+  attr_writer :number, :vans
+  attr_accessor :speed, :route, :station
 
   def next_n_station(n)
     raise 'Отсутствует маршрут' unless on_route?
