@@ -25,6 +25,7 @@ class Station
   end
 
   def for_train(&block)
+    return unless block_given?
     trains_list.each {|train| block.call(train)}
   end
 

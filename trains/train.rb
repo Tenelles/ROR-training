@@ -39,6 +39,7 @@ class Train
   end
 
   def for_van(&block)
+    return unless block_given?
     vans.each { |van| block.call(van)}
   end
 
