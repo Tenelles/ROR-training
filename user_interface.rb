@@ -86,7 +86,7 @@ class UserInterface
   rescue RuntimeError
     puts "\tПоезд не найден! Повторите ввод."
     retry
-  end  
+  end
 
   def get_existing_van(train, message)
     van_number = get_information(message).to_i - 1
@@ -219,7 +219,6 @@ class UserInterface
     van = get_existing_van(train, 'Укажите номер вагона:')
     van.take_place
     puts "\tМесто было занято успешно."
-
   rescue NoMethodError
     puts "\tДанная операция недоступна для вагона данного типа! Операция не выполнена."
   rescue RuntimeError
@@ -232,7 +231,6 @@ class UserInterface
     volume = get_information('Укажите добавочный объем:').to_i
     van.fill_volume(volume)
     puts "\tОбъем был добвлен успешно."
-
   rescue NoMethodError
     puts "\tДанная операция недоступна для вагона данного типа! Операция не выполнена."
   rescue RuntimeError
@@ -289,7 +287,7 @@ class UserInterface
 
     puts "Список вагонов поезда ##{train.number}:"
     i = 0
-    train.for_van do |van| 
+    train.for_van do |van|
       i += 1
       case van.type
       when :cargo

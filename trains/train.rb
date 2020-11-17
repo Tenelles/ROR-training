@@ -2,6 +2,8 @@
 
 require_relative '../company'
 require_relative '../instance_counter'
+require_relative '../validation'
+require_relative '../accessors'
 
 #   Список ошибок:
 #     attach: "Несоответствие типов вагона и поезда" - попытка присоединить к поезду вагон иного типа
@@ -14,13 +16,13 @@ require_relative '../instance_counter'
 class Train
   include Company
   include InstanceCounter
+  include Validation
 
   def self.find(number)
     objects.find { |train| train.number == number }
   end
 
-  attr_reader :number
-  attr_reader :vans
+  attr_reader :number, :vans
 
   def initialize(number)
     @number = number
@@ -28,19 +30,16 @@ class Train
     @vans = []
     register_instance
     self.class.objects << self
+    self.class.validate(:number, :precence)
+    self.class.validate(:number, :type, String)
+    self.class.validate(:number, :format, /\A[[0-9]|[a-z]]{3}-?[[0-9]|[a-z]]{3}\z/.source)
     validate!
-  end
-
-  def valid?
-    validate!
-    true
-  rescue RuntimeError
-    false
   end
 
   def for_van(&block)
     return unless block_given?
-    vans.each { |van| block.call(van)}
+
+    vans.each { |van| block.call(van) }
   end
 
   def increase_speed(value)
@@ -119,18 +118,6 @@ class Train
       [] if @@objects.nil?
       @@objects
     end
-  end
-
-  def validate!
-    validate_number!
-  end
-
-  def validate_number!
-    raise 'Неверный формат номера' unless number.downcase =~ correct_number_mask
-  end
-
-  def correct_number_mask
-    /[[0-9][a-z]]{3}-?[[0-9][a-z]]{3}/
   end
 
   attr_writer :number, :vans
