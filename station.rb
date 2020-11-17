@@ -10,6 +10,11 @@ class Station
 
   attr_reader :trains_list, :name
 
+
+  validate :name, :precence
+  validate :name, :type, String
+  validate :name, :format, /......+/
+
   def self.all
     objects
   end
@@ -18,9 +23,6 @@ class Station
     @name = name
     @trains_list = []
     self.class.objects << self
-    self.class.validate(:name, :precence)
-    self.class.validate(:name, :type, String)
-    self.class.validate(:name, :format, /......+/.source)
     validate!
   end
 

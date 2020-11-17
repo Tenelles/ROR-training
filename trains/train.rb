@@ -24,15 +24,16 @@ class Train
 
   attr_reader :number, :vans
 
+  validate :number, :precence
+  validate :number, :type, String
+  validate :number, :format, /\A[[0-9]|[a-z]]{3}-?[[0-9]|[a-z]]{3}\z/
+
   def initialize(number)
     @number = number
     @speed = 0
     @vans = []
     register_instance
     self.class.objects << self
-    self.class.validate(:number, :precence)
-    self.class.validate(:number, :type, String)
-    self.class.validate(:number, :format, /\A[[0-9]|[a-z]]{3}-?[[0-9]|[a-z]]{3}\z/.source)
     validate!
   end
 

@@ -27,7 +27,7 @@ module Validation
     end
 
     def validate_type(var,type)
-      raise "#{var} is not #{args[0]}" unless instance_variable_get("@#{var}".to_sym).is_a?(type)
+      raise "#{var} is not #{type}" unless instance_variable_get("@#{var}".to_sym).is_a?(type)
     end
 
    	def validate!
