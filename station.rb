@@ -3,8 +3,17 @@
 #   Список ошибок:
 #     validate!: "Название станции слишком короткое"
 
+require_relative 'validation'
+
 class Station
+  include Validation
+
   attr_reader :trains_list, :name
+
+
+  validate :name, :precence
+  validate :name, :type, String
+  validate :name, :format, /......+/
 
   def self.all
     objects
@@ -17,15 +26,10 @@ class Station
     validate!
   end
 
-  def valid?
-    validate!
-    true
-  rescue RuntimeError
-    false
-  end
-
   def for_train(&block)
-    trains_list.each {|train| block.call(train)}
+    return unless block_given?
+
+    trains_list.each { |train| block.call(train) }
   end
 
   def take_train(train)
@@ -42,17 +46,11 @@ class Station
 
   protected
 
-  MIN_NAME_LENGTH = 6
-
   @@objects = []
   class << self
     def objects
       @@objects
     end
-  end
-
-  def validate!
-    raise 'Название станции слишком короткое' if name.length < MIN_NAME_LENGTH
   end
 
   attr_writer :trains_list, :name
